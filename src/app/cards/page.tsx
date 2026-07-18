@@ -48,18 +48,52 @@ export default function CardsPage() {
     const [revealComplete, setRevealComplete] = useState(false);
     const [sparkles, setSparkles] = useState<{ id: number; x: number; y: number; delay: number; size: number }[]>([]);
 
-    const [tilt, setTilt] = useState({ x: 0, y: 0 });
+    const [rotY, setRotY] = useState(0);
+    const [rotX, setRotX] = useState(0);
     const [isInteracting, setIsInteracting] = useState(false);
+    const [dragStart, setDragStart] = useState({ x: 0, y: 0, rotY: 0, rotX: 0 });
 
-    const handlePointerMove = (clientX: number, clientY: number, currentTarget: HTMLDivElement) => {
-        const rect = currentTarget.getBoundingClientRect();
-        const x = (clientX - rect.left) / rect.width - 0.5;
-        const y = (clientY - rect.top) / rect.height - 0.5;
-        setTilt({
-            x: -y * 35,
-            y: x * 35
+    const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setIsInteracting(true);
+        setDragStart({
+            x: e.clientX,
+            y: e.clientY,
+            rotY: rotY,
+            rotX: rotX
         });
     };
+
+    const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (!isInteracting) return;
+        const deltaX = e.clientX - dragStart.x;
+        const deltaY = e.clientY - dragStart.y;
+        setRotY(dragStart.rotY - deltaX * 1.2);
+        setRotX(Math.max(-60, Math.min(60, dragStart.rotX + deltaY * 1.0)));
+    };
+
+    const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (!isInteracting) return;
+        setIsInteracting(false);
+        e.currentTarget.releasePointerCapture(e.pointerId);
+    };
+
+    useEffect(() => {
+        if (isInteracting) return;
+
+        let frameId: number;
+        const tick = () => {
+            setRotY(y => (y + 0.3) % 360);
+            setRotX(x => {
+                if (Math.abs(x) < 0.1) return 0;
+                return x * 0.95;
+            });
+            frameId = requestAnimationFrame(tick);
+        };
+
+        frameId = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(frameId);
+    }, [isInteracting]);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -347,52 +381,29 @@ export default function CardsPage() {
 
                         {/* Card with holographic and 3D pointer-rotation effect */}
                         <div
-                            onMouseMove={(e) => {
-                                setIsInteracting(true);
-                                handlePointerMove(e.clientX, e.clientY, e.currentTarget);
-                            }}
-                            onTouchMove={(e) => {
-                                setIsInteracting(true);
-                                handlePointerMove(e.touches[0].clientX, e.touches[0].clientY, e.currentTarget);
-                            }}
-                            onMouseEnter={() => setIsInteracting(true)}
-                            onMouseLeave={() => {
-                                setIsInteracting(false);
-                                setTilt({ x: 0, y: 0 });
-                            }}
-                            onTouchEnd={() => {
-                                setIsInteracting(false);
-                                setTilt({ x: 0, y: 0 });
-                            }}
-                            onClick={() => setIsFlipped(!isFlipped)}
-                            className="relative group cursor-pointer select-none touch-none"
+                            onPointerDown={onPointerDown}
+                            onPointerMove={onPointerMove}
+                            onPointerUp={onPointerUp}
+                            onPointerCancel={onPointerUp}
+                            className="relative group cursor-grab active:cursor-grabbing select-none touch-none"
                             style={{
                                 perspective: '1200px',
+                                touchAction: 'none'
                             }}
                         >
                             <motion.div
                                 className="relative w-[280px] h-[400px] md:w-[320px] md:h-[460px]"
                                 style={{
                                     transformStyle: 'preserve-3d',
+                                    rotateY: rotY,
+                                    rotateX: rotX,
                                 }}
                                 animate={isInteracting ? {
-                                    rotateY: isFlipped ? 180 + tilt.y : tilt.y,
-                                    rotateX: tilt.x,
                                     scale: 1.05
                                 } : {
-                                    rotateY: isFlipped ? [180, 185, 175, 180] : [0, 5, -5, 0],
-                                    rotateX: [0, 4, -4, 0],
                                     scale: 1.0
                                 }}
-                                transition={isInteracting ? {
-                                    type: "spring",
-                                    stiffness: 200,
-                                    damping: 20
-                                } : {
-                                    rotateY: isFlipped
-                                        ? { duration: 0.6, ease: "easeOut" }
-                                        : { repeat: Infinity, duration: 8, ease: "easeInOut" },
-                                    rotateX: { repeat: Infinity, duration: 6, ease: "easeInOut" },
+                                transition={{
                                     scale: { duration: 0.3 }
                                 }}
                             >
