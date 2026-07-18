@@ -346,7 +346,7 @@ export default function CardsPage() {
                         </div>
 
                         {/* Card with holographic and 3D pointer-rotation effect */}
-                        <motion.div
+                        <div
                             onMouseMove={(e) => {
                                 setIsInteracting(true);
                                 handlePointerMove(e.clientX, e.clientY, e.currentTarget);
@@ -369,31 +369,31 @@ export default function CardsPage() {
                             style={{
                                 perspective: '1200px',
                             }}
-                            animate={isInteracting ? {
-                                rotateY: isFlipped ? 180 + tilt.y : tilt.y,
-                                rotateX: tilt.x,
-                                scale: 1.05
-                            } : {
-                                rotateY: isFlipped ? [180, 185, 175, 180] : [0, 5, -5, 0],
-                                rotateX: [0, 4, -4, 0],
-                                scale: 1.0
-                            }}
-                            transition={isInteracting ? {
-                                type: "spring",
-                                stiffness: 200,
-                                damping: 20
-                            } : {
-                                rotateY: isFlipped
-                                    ? { duration: 0.6, ease: "easeOut" }
-                                    : { repeat: Infinity, duration: 8, ease: "easeInOut" },
-                                rotateX: { repeat: Infinity, duration: 6, ease: "easeInOut" },
-                                scale: { duration: 0.3 }
-                            }}
                         >
-                            <div
+                            <motion.div
                                 className="relative w-[280px] h-[400px] md:w-[320px] md:h-[460px]"
                                 style={{
                                     transformStyle: 'preserve-3d',
+                                }}
+                                animate={isInteracting ? {
+                                    rotateY: isFlipped ? 180 + tilt.y : tilt.y,
+                                    rotateX: tilt.x,
+                                    scale: 1.05
+                                } : {
+                                    rotateY: isFlipped ? [180, 185, 175, 180] : [0, 5, -5, 0],
+                                    rotateX: [0, 4, -4, 0],
+                                    scale: 1.0
+                                }}
+                                transition={isInteracting ? {
+                                    type: "spring",
+                                    stiffness: 200,
+                                    damping: 20
+                                } : {
+                                    rotateY: isFlipped
+                                        ? { duration: 0.6, ease: "easeOut" }
+                                        : { repeat: Infinity, duration: 8, ease: "easeInOut" },
+                                    rotateX: { repeat: Infinity, duration: 6, ease: "easeInOut" },
+                                    scale: { duration: 0.3 }
                                 }}
                             >
                                 {/* Front of card */}
@@ -415,11 +415,11 @@ export default function CardsPage() {
                                     <Image src="/cards/card_back.png" alt="Card Back" fill className="object-cover" />
                                     <div className="absolute inset-0 rounded-2xl border-2 border-amber-500/30" />
                                 </div>
-                            </div>
+                            </motion.div>
 
                             {/* Card glow */}
                             <div className="absolute -inset-4 rounded-3xl bg-amber-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
-                        </motion.div>
+                        </div>
 
                         <p className="text-white/30 text-xs mt-2 mb-6">Tap card to flip</p>
 
