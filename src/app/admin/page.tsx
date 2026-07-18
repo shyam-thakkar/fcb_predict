@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { argentinaSquad, spainSquad, allPlayers } from '@/data/squads';
 import toast from 'react-hot-toast';
 
-type Tab = 'overview' | 'match' | 'users' | 'analytics';
+type Tab = 'overview' | 'match' | 'users' | 'analytics' | 'cards';
 
 interface AnalyticsData {
     totalUsers: number;
@@ -30,6 +30,17 @@ interface UserEntry {
     last_login: string | null;
 }
 
+interface CardEntry {
+    id: string;
+    user_id: string;
+    card_design: string;
+    card_number: string;
+    is_collected: boolean;
+    assigned_at: string;
+    collected_at: string | null;
+    users: { full_name: string; username: string; mobile: string };
+}
+
 export default function AdminPage() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
@@ -43,6 +54,10 @@ export default function AdminPage() {
     const [fotmobMatchId, setFotmobMatchId] = useState('4653858');
     const [syncing, setSyncing] = useState(false);
     const [autoSync, setAutoSync] = useState(false);
+    const [cards, setCards] = useState<CardEntry[]>([]);
+    const [cardSearch, setCardSearch] = useState('');
+    const [cardFilter, setCardFilter] = useState<'all' | 'collected' | 'pending'>('all');
+    const [togglingCard, setTogglingCard] = useState<string | null>(null);
 
     // Match edit form
     const [matchForm, setMatchForm] = useState({
@@ -226,10 +241,69 @@ export default function AdminPage() {
         return u.username.toLowerCase().includes(s) || u.full_name.toLowerCase().includes(s) || u.mobile.includes(s);
     });
 
+    // Card management functions
+    const loadCards = async () => {
+        try {
+            const res = await fetch('/api/cards?all=true');
+            const data = await res.json();
+            if (data.success) setCards(data.data || []);
+        } catch {
+            toast.error('Failed to load cards');
+        }
+    };
+
+    const toggleCardCollected = async (cardId: string, currentStatus: boolean) => {
+        setTogglingCard(cardId);
+        try {
+            const res = await fetch('/api/cards', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ card_id: cardId, is_collected: !currentStatus }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success(!currentStatus ? 'Card marked as collected' : 'Card marked as pending');
+                setCards(prev => prev.map(c => c.id === cardId ? { ...c, ...data.data } : c));
+            } else {
+                toast.error(data.error || 'Update failed');
+            }
+        } catch {
+            toast.error('Failed to update card status');
+        } finally {
+            setTogglingCard(null);
+        }
+    };
+
+    const filteredCards = cards.filter(c => {
+        const matchesFilter = cardFilter === 'all' || (cardFilter === 'collected' ? c.is_collected : !c.is_collected);
+        if (!cardSearch) return matchesFilter;
+        const s = cardSearch.toLowerCase();
+        return matchesFilter && (
+            c.users?.username?.toLowerCase().includes(s) ||
+            c.users?.full_name?.toLowerCase().includes(s) ||
+            c.card_number.toLowerCase().includes(s) ||
+            c.users?.mobile?.includes(s)
+        );
+    });
+
+    const cardStats = {
+        total: cards.length,
+        collected: cards.filter(c => c.is_collected).length,
+        pending: cards.filter(c => !c.is_collected).length,
+    };
+
+    // Auto-load cards when switching to the cards tab
+    useEffect(() => {
+        if (activeTab === 'cards' && user?.role === 'admin') {
+            loadCards();
+        }
+    }, [activeTab, user]);
+
     const tabs: { id: Tab; label: string; icon: string }[] = [
         { id: 'overview', label: 'Overview', icon: '📊' },
         { id: 'match', label: 'Match Control', icon: '⚽' },
         { id: 'users', label: 'Users', icon: '👥' },
+        { id: 'cards', label: 'Cards', icon: '🎴' },
         { id: 'analytics', label: 'Analytics', icon: '📈' },
     ];
 
@@ -616,6 +690,136 @@ export default function AdminPage() {
                                 </div>
                             </div>
                         </div>
+                    </motion.div>
+                )}
+
+                {/* Cards Management Tab */}
+                {activeTab === 'cards' && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                        {/* Card Stats */}
+                        <div className="grid grid-cols-3 gap-4 mb-6">
+                            {[
+                                { label: 'Total Cards', value: cardStats.total, icon: '🎴', color: 'text-amber-400' },
+                                { label: 'Collected', value: cardStats.collected, icon: '✅', color: 'text-emerald-400' },
+                                { label: 'Pending', value: cardStats.pending, icon: '⏳', color: 'text-orange-400' },
+                            ].map((stat, i) => (
+                                <div key={i} className="glass-card p-5 text-center">
+                                    <div className="text-2xl mb-1">{stat.icon}</div>
+                                    <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
+                                    <div className="text-xs text-white/40">{stat.label}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Filter & Search */}
+                        <div className="flex flex-col md:flex-row gap-3 mb-4">
+                            <input
+                                type="text"
+                                className="form-input flex-grow"
+                                placeholder="🔍 Search by name, username, mobile or card number..."
+                                value={cardSearch}
+                                onChange={(e) => setCardSearch(e.target.value)}
+                            />
+                            <div className="flex gap-1">
+                                {(['all', 'pending', 'collected'] as const).map(f => (
+                                    <button
+                                        key={f}
+                                        onClick={() => setCardFilter(f)}
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize cursor-pointer ${cardFilter === f
+                                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/20'
+                                                : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'
+                                            }`}
+                                    >
+                                        {f}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Cards Table */}
+                        <div className="glass-card overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b border-white/5">
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase">User</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase hidden md:table-cell">Card Number</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase">Design</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase hidden lg:table-cell">Assigned</th>
+                                            <th className="px-4 py-3 text-center text-xs font-medium text-white/40 uppercase">Status</th>
+                                            <th className="px-4 py-3 text-right text-xs font-medium text-white/40 uppercase">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/[0.03]">
+                                        {filteredCards.map(c => {
+                                            const designLabels: Record<string, { label: string; emoji: string }> = {
+                                                messi_white: { label: 'Last Dance', emoji: '⚪' },
+                                                messi_barca: { label: 'Barça Legend', emoji: '🔵🔴' },
+                                                messi_goat: { label: 'G.O.A.T.', emoji: '🐐' },
+                                            };
+                                            const design = designLabels[c.card_design] || { label: c.card_design, emoji: '🎴' };
+                                            return (
+                                                <tr key={c.id} className="hover:bg-white/[0.02]">
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-xs font-bold text-white">
+                                                                {c.users?.username?.[0]?.toUpperCase() || '?'}
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-sm text-white block">{c.users?.username || 'Unknown'}</span>
+                                                                <span className="text-[11px] text-white/30 block md:hidden">{c.card_number}</span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 hidden md:table-cell">
+                                                        <span className="text-xs font-mono text-amber-400/80 tracking-wider">{c.card_number}</span>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span className="text-xs px-2 py-1 rounded-lg bg-white/[0.03] border border-white/[0.05] text-white/60">
+                                                            {design.emoji} {design.label}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-white/30 hidden lg:table-cell">
+                                                        {new Date(c.assigned_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        {c.is_collected ? (
+                                                            <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Collected
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" /> Pending
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        <button
+                                                            onClick={() => toggleCardCollected(c.id, c.is_collected)}
+                                                            disabled={togglingCard === c.id}
+                                                            className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer disabled:opacity-50 ${c.is_collected
+                                                                    ? 'text-orange-400 hover:bg-orange-500/10 border border-orange-500/20'
+                                                                    : 'text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20'
+                                                                }`}
+                                                        >
+                                                            {togglingCard === c.id ? '...' : c.is_collected ? 'Undo' : '✓ Mark Collected'}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {filteredCards.length === 0 && (
+                                <div className="text-center py-12 text-white/30">
+                                    <div className="text-4xl mb-3">🎴</div>
+                                    <p className="text-sm">No cards found</p>
+                                    <p className="text-xs text-white/20 mt-1">Cards will appear here when users claim them</p>
+                                </div>
+                            )}
+                        </div>
+                        <div className="mt-2 text-sm text-white/30">{filteredCards.length} cards</div>
                     </motion.div>
                 )}
             </div>

@@ -17,6 +17,7 @@ export default function Navbar() {
         { href: '/leaderboard', label: 'Leaderboard', icon: '🏆' },
         { href: '/rules', label: 'Rules', icon: '📋' },
         { href: '/hall-of-fame', label: 'Hall of Fame', icon: '🌟' },
+        { href: '/cards', label: 'My Card', icon: '🎴', auth: true },
     ];
 
     const isActive = (href: string) => pathname === href;

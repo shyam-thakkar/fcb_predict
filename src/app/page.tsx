@@ -52,9 +52,9 @@ export default function HomePage() {
             transition={{ delay: 0.2 }}
             className="mb-8"
           >
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-6">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8 mb-6">
               {/* Argentina */}
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4">
                 <motion.div
                   className="flag-wave"
                   initial={{ x: -30, opacity: 0 }}
@@ -67,7 +67,7 @@ export default function HomePage() {
                     className="w-12 h-8 md:w-16 md:h-10 object-cover rounded shadow-lg border border-white/10"
                   />
                 </motion.div>
-                <div className="text-left">
+                <div className="text-center md:text-left">
                   <div className="text-2xl md:text-4xl font-bold text-white">Argentina</div>
                   <div className="text-sm text-white/40">Defending Champions</div>
                 </div>
@@ -78,14 +78,14 @@ export default function HomePage() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.4, type: 'spring' }}
-                className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 backdrop-blur-md border border-amber-500/20 flex items-center justify-center"
+                className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 backdrop-blur-md border border-amber-500/20 flex items-center justify-center shrink-0"
               >
                 <span className="text-xl md:text-2xl font-black text-gold-gradient">VS</span>
               </motion.div>
 
               {/* Spain */}
-              <div className="flex items-center gap-4">
-                <div className="text-right">
+              <div className="flex flex-col-reverse md:flex-row items-center gap-3 md:gap-4">
+                <div className="text-center md:text-right">
                   <div className="text-2xl md:text-4xl font-bold text-white">Spain</div>
                   <div className="text-sm text-white/40">Euro 2024 Champions</div>
                 </div>

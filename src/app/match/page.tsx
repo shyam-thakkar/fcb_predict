@@ -87,38 +87,38 @@ export default function MatchCenterPage() {
                     </div>
 
                     {/* Score Display */}
-                    <div className="flex items-center justify-center gap-6 md:gap-12">
+                    <div className="flex items-center justify-center gap-2.5 sm:gap-6 md:gap-12">
                         {/* Argentina */}
-                        <div className="flex flex-col items-center gap-2">
+                        <div className="flex flex-col items-center gap-1.5 sm:gap-2">
                             <span className="flag-wave">
                                 <img
                                     src="https://flagcdn.com/w160/ar.png"
                                     alt="Argentina Flag"
-                                    className="w-12 h-8 md:w-16 md:h-10 object-cover rounded shadow border border-white/10"
+                                    className="w-10 h-7 sm:w-16 sm:h-10 object-cover rounded shadow border border-white/10"
                                 />
                             </span>
-                            <span className="text-lg md:text-xl font-bold text-white">Argentina</span>
+                            <span className="text-sm sm:text-lg md:text-xl font-bold text-white">Argentina</span>
                         </div>
 
                         {/* Score */}
-                        <div className="text-center">
-                            <div className="text-5xl md:text-7xl font-black text-white tracking-wider">
+                        <div className="text-center min-w-[70px]">
+                            <div className="text-3xl sm:text-5xl md:text-7xl font-black text-white tracking-wider">
                                 {match.score_home}
-                                <span className="text-white/20 mx-2">-</span>
+                                <span className="text-white/20 mx-1 sm:mx-2">-</span>
                                 {match.score_away}
                             </div>
                         </div>
 
                         {/* Spain */}
-                        <div className="flex flex-col items-center gap-2">
+                        <div className="flex flex-col items-center gap-1.5 sm:gap-2">
                             <span className="flag-wave">
                                 <img
                                     src="https://flagcdn.com/w160/es.png"
                                     alt="Spain Flag"
-                                    className="w-12 h-8 md:w-16 md:h-10 object-cover rounded shadow border border-white/10"
+                                    className="w-10 h-7 sm:w-16 sm:h-10 object-cover rounded shadow border border-white/10"
                                 />
                             </span>
-                            <span className="text-lg md:text-xl font-bold text-white">Spain</span>
+                            <span className="text-sm sm:text-lg md:text-xl font-bold text-white">Spain</span>
                         </div>
                     </div>
 
