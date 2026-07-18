@@ -48,13 +48,18 @@ export default function CardsPage() {
     const [revealComplete, setRevealComplete] = useState(false);
     const [sparkles, setSparkles] = useState<{ id: number; x: number; y: number; delay: number; size: number }[]>([]);
 
-    const dragX = useMotionValue(0);
-    const dragY = useMotionValue(0);
-    const [isDragging, setIsDragging] = useState(false);
+    const [tilt, setTilt] = useState({ x: 0, y: 0 });
+    const [isInteracting, setIsInteracting] = useState(false);
 
-    // Map drag offset to degrees of rotation
-    const rotateX = useTransform(dragY, [-200, 200], [50, -50]);
-    const rotateY = useTransform(dragX, [-200, 200], [-50, 50]);
+    const handlePointerMove = (clientX: number, clientY: number, currentTarget: HTMLDivElement) => {
+        const rect = currentTarget.getBoundingClientRect();
+        const x = (clientX - rect.left) / rect.width - 0.5;
+        const y = (clientY - rect.top) / rect.height - 0.5;
+        setTilt({
+            x: -y * 35,
+            y: x * 35
+        });
+    };
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -340,35 +345,50 @@ export default function CardsPage() {
                             ))}
                         </div>
 
-                        {/* Card with holographic and 3D drag effect */}
+                        {/* Card with holographic and 3D pointer-rotation effect */}
                         <motion.div
-                            drag
-                            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                            dragElastic={0.4}
-                            onDragStart={() => setIsDragging(true)}
-                            onDragEnd={(e, info) => {
-                                setIsDragging(false);
-                                if (Math.abs(info.offset.x) > 60) {
-                                    setIsFlipped(!isFlipped);
-                                }
+                            onMouseMove={(e) => {
+                                setIsInteracting(true);
+                                handlePointerMove(e.clientX, e.clientY, e.currentTarget);
                             }}
-                            onTap={() => setIsFlipped(!isFlipped)}
-                            className="relative group cursor-grab active:cursor-grabbing touch-none select-none"
+                            onTouchMove={(e) => {
+                                setIsInteracting(true);
+                                handlePointerMove(e.touches[0].clientX, e.touches[0].clientY, e.currentTarget);
+                            }}
+                            onMouseEnter={() => setIsInteracting(true)}
+                            onMouseLeave={() => {
+                                setIsInteracting(false);
+                                setTilt({ x: 0, y: 0 });
+                            }}
+                            onTouchEnd={() => {
+                                setIsInteracting(false);
+                                setTilt({ x: 0, y: 0 });
+                            }}
+                            onClick={() => setIsFlipped(!isFlipped)}
+                            className="relative group cursor-pointer select-none touch-none"
                             style={{
                                 perspective: '1200px',
-                                x: dragX,
-                                y: dragY,
-                                rotateX: isDragging ? rotateX : 0,
-                                rotateY: isDragging ? rotateY : 0,
                             }}
-                            animate={!isDragging ? {
+                            animate={isInteracting ? {
+                                rotateY: isFlipped ? 180 + tilt.y : tilt.y,
+                                rotateX: tilt.x,
+                                scale: 1.05
+                            } : {
                                 rotateY: isFlipped ? [180, 185, 175, 180] : [0, 5, -5, 0],
                                 rotateX: [0, 4, -4, 0],
-                            } : undefined}
-                            transition={!isDragging ? {
-                                rotateY: { repeat: Infinity, duration: 8, ease: "easeInOut" },
-                                rotateX: { repeat: Infinity, duration: 6, ease: "easeInOut" }
-                            } : undefined}
+                                scale: 1.0
+                            }}
+                            transition={isInteracting ? {
+                                type: "spring",
+                                stiffness: 200,
+                                damping: 20
+                            } : {
+                                rotateY: isFlipped
+                                    ? { duration: 0.6, ease: "easeOut" }
+                                    : { repeat: Infinity, duration: 8, ease: "easeInOut" },
+                                rotateX: { repeat: Infinity, duration: 6, ease: "easeInOut" },
+                                scale: { duration: 0.3 }
+                            }}
                         >
                             <div
                                 className="relative w-[280px] h-[400px] md:w-[320px] md:h-[460px]"
