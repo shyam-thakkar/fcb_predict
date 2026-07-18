@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -47,6 +47,14 @@ export default function CardsPage() {
     const [showReveal, setShowReveal] = useState(false);
     const [revealComplete, setRevealComplete] = useState(false);
     const [sparkles, setSparkles] = useState<{ id: number; x: number; y: number; delay: number; size: number }[]>([]);
+
+    const dragX = useMotionValue(0);
+    const dragY = useMotionValue(0);
+    const [isDragging, setIsDragging] = useState(false);
+
+    // Map drag offset to degrees of rotation
+    const rotateX = useTransform(dragY, [-200, 200], [50, -50]);
+    const rotateY = useTransform(dragX, [-200, 200], [-50, 50]);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -332,19 +340,40 @@ export default function CardsPage() {
                             ))}
                         </div>
 
-                        {/* Card with holographic effect */}
+                        {/* Card with holographic and 3D drag effect */}
                         <motion.div
-                            className="relative group cursor-pointer"
-                            whileHover={{ scale: 1.02, rotateY: 5 }}
-                            style={{ perspective: '1000px' }}
-                            onClick={() => setIsFlipped(!isFlipped)}
+                            drag
+                            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                            dragElastic={0.4}
+                            onDragStart={() => setIsDragging(true)}
+                            onDragEnd={(e, info) => {
+                                setIsDragging(false);
+                                if (Math.abs(info.offset.x) > 60) {
+                                    setIsFlipped(!isFlipped);
+                                }
+                            }}
+                            onTap={() => setIsFlipped(!isFlipped)}
+                            className="relative group cursor-grab active:cursor-grabbing touch-none select-none"
+                            style={{
+                                perspective: '1200px',
+                                x: dragX,
+                                y: dragY,
+                                rotateX: isDragging ? rotateX : 0,
+                                rotateY: isDragging ? rotateY : 0,
+                            }}
+                            animate={!isDragging ? {
+                                rotateY: isFlipped ? [180, 185, 175, 180] : [0, 5, -5, 0],
+                                rotateX: [0, 4, -4, 0],
+                            } : undefined}
+                            transition={!isDragging ? {
+                                rotateY: { repeat: Infinity, duration: 8, ease: "easeInOut" },
+                                rotateX: { repeat: Infinity, duration: 6, ease: "easeInOut" }
+                            } : undefined}
                         >
                             <div
                                 className="relative w-[280px] h-[400px] md:w-[320px] md:h-[460px]"
                                 style={{
                                     transformStyle: 'preserve-3d',
-                                    transition: 'transform 0.8s cubic-bezier(0.68, -0.6, 0.32, 1.6)',
-                                    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
                                 }}
                             >
                                 {/* Front of card */}
