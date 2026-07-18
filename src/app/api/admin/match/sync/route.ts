@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { verifyToken } from '@/lib/auth';
-import { Match, GoalEvent, CardEvent } from '@/types';
+import { Match, GoalEvent, CardEvent, Prediction } from '@/types';
+import { calculatePoints, tieBreak, assignBadges, ScoreBreakdown } from '@/lib/scoring';
 
 export async function POST(request: NextRequest) {
     try {
@@ -261,10 +262,50 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Database update failed: ' + dbError.message }, { status: 500 });
         }
 
+        // Auto-recalculate leaderboard on successful sync
+        try {
+            const { data: predictions } = await supabase
+                .from('predictions')
+                .select('*')
+                .eq('match_id', match_id);
+
+            if (predictions && predictions.length > 0) {
+                const scored = predictions.map((prediction: Prediction) => {
+                    const breakdown = calculatePoints(prediction, updatedMatch as Match);
+                    return { prediction, breakdown };
+                });
+
+                scored.sort((a, b) => {
+                    if (b.breakdown.total !== a.breakdown.total) return b.breakdown.total - a.breakdown.total;
+                    return tieBreak(a, b);
+                });
+
+                for (let i = 0; i < scored.length; i++) {
+                    const { prediction, breakdown } = scored[i];
+                    const rank = i + 1;
+                    const badges = assignBadges(rank, breakdown);
+
+                    await supabase
+                        .from('leaderboard')
+                        .upsert({
+                            user_id: prediction.user_id,
+                            match_id,
+                            points: breakdown.total,
+                            rank,
+                            correct_predictions: breakdown.correctPredictions,
+                            badges,
+                        }, { onConflict: 'user_id,match_id' });
+                }
+                console.log(`Leaderboard auto-recalculated for ${scored.length} users during sync.`);
+            }
+        } catch (recalcError: any) {
+            console.error('Failed to recalculate leaderboard during sync:', recalcError);
+        }
+
         return NextResponse.json({
             success: true,
             data: updatedMatch,
-            message: 'Match synced successfully from FotMob!'
+            message: 'Match synced and leaderboard recalculated successfully!'
         });
 
     } catch (error: any) {
