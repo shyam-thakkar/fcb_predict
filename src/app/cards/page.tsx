@@ -432,7 +432,7 @@ export default function CardsPage() {
                             <div className="absolute -inset-4 rounded-3xl bg-amber-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
                         </div>
 
-                        <p className="text-white/30 text-xs mt-2 mb-6">Tap card to flip</p>
+                        <div className="mt-4" />
 
                         {/* Card Info */}
                         <motion.div
