@@ -110,7 +110,8 @@ export async function POST(request: NextRequest) {
             const { count, error: countError } = await supabase
                 .from('screening_cards')
                 .select('*', { count: 'exact', head: true })
-                .eq('card_design', design);
+                .eq('card_design', design)
+                .eq('is_collected', true);
 
             if (!countError && count !== null) {
                 tallies[design] = count;
