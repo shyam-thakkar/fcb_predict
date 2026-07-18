@@ -99,8 +99,32 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'You already have a card assigned!' }, { status: 400 });
         }
 
-        // Randomly assign a card design
-        const randomDesign = CARD_DESIGNS[Math.floor(Math.random() * CARD_DESIGNS.length)];
+        // Get tallies of each card design to check against physical stock (120 cards limit per design)
+        const tallies: Record<string, number> = {
+            messi_white: 0,
+            messi_barca: 0,
+            messi_goat: 0
+        };
+
+        for (const design of CARD_DESIGNS) {
+            const { count, error: countError } = await supabase
+                .from('screening_cards')
+                .select('*', { count: 'exact', head: true })
+                .eq('card_design', design);
+
+            if (!countError && count !== null) {
+                tallies[design] = count;
+            }
+        }
+
+        const availableDesigns = CARD_DESIGNS.filter(design => tallies[design] < 120);
+
+        if (availableDesigns.length === 0) {
+            return NextResponse.json({ success: false, error: 'All physical screening cards have been claimed!' }, { status: 400 });
+        }
+
+        // Randomly assign one of the available (not exhausted) card designs
+        const randomDesign = availableDesigns[Math.floor(Math.random() * availableDesigns.length)];
         const cardNumber = generateCardNumber();
 
         const { data, error } = await supabase
