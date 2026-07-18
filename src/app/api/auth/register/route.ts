@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
                 .from('users')
                 .select('id')
                 .eq('ip_address', ip_address)
+                .neq('role', 'admin')
                 .limit(1);
 
             if (existingIp && existingIp.length > 0) {

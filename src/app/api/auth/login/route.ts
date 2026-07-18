@@ -35,9 +35,10 @@ export async function POST(request: NextRequest) {
         if (!isLocal && user.role !== 'admin') {
             const { data: activeIpUser } = await supabase
                 .from('users')
-                .select('id, username')
+                .select('id, username, role')
                 .eq('ip_address', ip)
                 .neq('id', user.id)
+                .neq('role', 'admin')
                 .limit(1);
 
             if (activeIpUser && activeIpUser.length > 0) {
