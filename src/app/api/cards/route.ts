@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'You already have a card assigned!' }, { status: 400 });
         }
 
-        // Get tallies of each card design to check against physical stock (120 cards limit per design)
+        // Get tallies of each card design to check against physical stock (1000 cards limit per design)
         const tallies: Record<string, number> = {
             messi_white: 0,
             messi_barca: 0,
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        const availableDesigns = CARD_DESIGNS.filter(design => tallies[design] < 120);
+        const availableDesigns = CARD_DESIGNS.filter(design => tallies[design] < 1000);
 
         if (availableDesigns.length === 0) {
             return NextResponse.json({ success: false, error: 'All physical screening cards have been claimed!' }, { status: 400 });

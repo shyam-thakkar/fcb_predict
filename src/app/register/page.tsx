@@ -35,8 +35,8 @@ export default function RegisterPage() {
         setLoading(false);
 
         if (result.success) {
-            toast.success('Registration successful! Please login.');
-            router.push('/login');
+            toast.success('Registration successful! Welcome 🎉');
+            router.push('/predict');
         } else {
             toast.error(result.error || 'Registration failed');
         }

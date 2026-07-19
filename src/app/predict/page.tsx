@@ -205,7 +205,7 @@ export default function PredictPage() {
                                     <label className="text-xs text-white/40 mb-1 block">🇦🇷 Argentina</label>
                                     <select className="form-select" value={prediction.score_home} onChange={(e) => setPrediction({ ...prediction, score_home: e.target.value })} disabled={readOnly}>
                                         <option value="">Goals</option>
-                                        {Array.from({ length: 11 }, (_, i) => <option key={i} value={i}>{i}</option>)}
+                                        {Array.from({ length: 1001 }, (_, i) => <option key={i} value={i}>{i}</option>)}
                                     </select>
                                 </div>
                                 <span className="text-white/30 text-2xl font-bold mt-5">-</span>
@@ -213,7 +213,7 @@ export default function PredictPage() {
                                     <label className="text-xs text-white/40 mb-1 block">🇪🇸 Spain</label>
                                     <select className="form-select" value={prediction.score_away} onChange={(e) => setPrediction({ ...prediction, score_away: e.target.value })} disabled={readOnly}>
                                         <option value="">Goals</option>
-                                        {Array.from({ length: 11 }, (_, i) => <option key={i} value={i}>{i}</option>)}
+                                        {Array.from({ length: 1001 }, (_, i) => <option key={i} value={i}>{i}</option>)}
                                     </select>
                                 </div>
                             </div>
@@ -343,7 +343,7 @@ export default function PredictPage() {
                             </div>
                             <select className="form-select" value={prediction.yellow_cards} onChange={(e) => setPrediction({ ...prediction, yellow_cards: e.target.value })} disabled={readOnly}>
                                 <option value="">Select</option>
-                                {Array.from({ length: 11 }, (_, i) => <option key={i} value={i}>{i}</option>)}
+                                {Array.from({ length: 1001 }, (_, i) => <option key={i} value={i}>{i}</option>)}
                             </select>
                         </motion.div>
 
@@ -390,7 +390,7 @@ export default function PredictPage() {
                             </div>
                             <select className="form-select" value={prediction.corners} onChange={(e) => setPrediction({ ...prediction, corners: e.target.value })} disabled={readOnly}>
                                 <option value="">Select</option>
-                                {Array.from({ length: 21 }, (_, i) => <option key={i} value={i}>{i}</option>)}
+                                {Array.from({ length: 1001 }, (_, i) => <option key={i} value={i}>{i}</option>)}
                             </select>
                         </motion.div>
 

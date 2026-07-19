@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { hashPassword, validatePassword, validateMobile } from '@/lib/auth';
+import { hashPassword, validatePassword, validateMobile, generateToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
     try {
@@ -87,11 +87,39 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Registration failed. Please try again.' }, { status: 500 });
         }
 
-        return NextResponse.json({
+        // Update last login
+        await supabase
+            .from('users')
+            .update({
+                last_login: new Date().toISOString()
+            })
+            .eq('id', newUser.id);
+
+        // Generate JWT
+        const token = generateToken({ id: newUser.id, username: newUser.username, role: newUser.role as 'user' | 'admin' });
+
+        const response = NextResponse.json({
             success: true,
-            data: newUser,
-            message: 'Registration successful! Please login to continue.',
+            data: {
+                id: newUser.id,
+                full_name: newUser.full_name,
+                username: newUser.username,
+                role: newUser.role,
+                token,
+            },
+            message: 'Registration successful! Welcome 🎉',
         });
+
+        // Set cookie
+        response.cookies.set('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60, // 7 days
+            path: '/',
+        });
+
+        return response;
     } catch (error) {
         console.error('Registration error:', error);
         return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
