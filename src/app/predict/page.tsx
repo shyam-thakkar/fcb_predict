@@ -209,7 +209,7 @@ export default function PredictPage() {
                                     </select>
                                 </div>
                                 <span className="text-white/30 text-2xl font-bold mt-5">-</span>
-                                <div className="flex-1">
+                                <div className  ="flex-1">
                                     <label className="text-xs text-white/40 mb-1 block">🇪🇸 Spain</label>
                                     <select className="form-select" value={prediction.score_away} onChange={(e) => setPrediction({ ...prediction, score_away: e.target.value })} disabled={readOnly}>
                                         <option value="">Goals</option>

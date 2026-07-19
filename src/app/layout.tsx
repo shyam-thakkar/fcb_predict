@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
-  title: "FCB Predictor | FIFA World Cup 2026 Final - Argentina vs Spain",
+  title: "FCB AHMEDABD | FIFA World Cup 2026 Final - Argentina vs Spain",
   description: "Predict the outcome of the FIFA World Cup 2026 Final between Argentina and Spain. Compete with others, earn badges, and climb the leaderboard!",
   keywords: "FIFA World Cup 2026, Argentina, Spain, prediction, football, soccer, leaderboard",
 };

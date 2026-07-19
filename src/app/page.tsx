@@ -333,6 +333,84 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Instagram Follow Section */}
+      <section className="py-20 px-4 border-t border-white/5 relative overflow-hidden">
+        {/* Background glow effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-purple-600/10 via-pink-600/10 to-amber-500/10 rounded-full blur-3xl" />
+        </div>
+
+        <div className="max-w-4xl mx-auto relative z-10">
+          <motion.div
+            initial={{ y: 30, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="glass-card p-8 md:p-12 text-center relative overflow-hidden border border-white/10 shadow-2xl group"
+          >
+            {/* Grid pattern overlay */}
+            <div className="absolute inset-0 grid-pattern opacity-10 pointer-events-none" />
+
+            {/* Instagram BRAND gradient glow/border on hover */}
+            <div className="absolute -inset-[1px] bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-600 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-500 -z-10" />
+
+            <div className="flex flex-col items-center justify-center">
+              {/* Instagram Icon with brand colors */}
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-600 flex items-center justify-center text-white text-4xl shadow-xl shadow-pink-500/20 mb-6 cursor-pointer"
+              >
+                <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                </svg>
+              </motion.div>
+
+              <h2 className="text-3xl font-extrabold text-white mb-3">
+                Follow Us on Instagram
+              </h2>
+
+              <p className="text-white/60 max-w-lg mx-auto mb-8 text-base">
+                Stay updated with the latest match screenings, event announcements, matchday discussions, and exclusive content from the official FCB Ahmedabad supporters group.
+              </p>
+
+              {/* Instagram Handle and Button */}
+              <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
+                <div className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-white/90 font-mono text-sm select-all">
+                  @fcbahmedabad__
+                </div>
+                <a
+                  href="https://www.instagram.com/fcbahmedabad__/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-8 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-pink-500 to-purple-600 text-white font-bold hover:shadow-lg hover:shadow-pink-500/20 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0"
+                >
+                  📸 Follow @fcbahmedabad__
+                </a>
+              </div>
+
+              {/* simulated social stats */}
+              <div className="flex justify-center gap-8 md:gap-12 mt-10 border-t border-white/5 pt-8 w-full max-w-md">
+                <div>
+                  <div className="text-lg font-bold text-white">Screenings</div>
+                  <div className="text-xs text-white/40">Live & Local 🏟️</div>
+                </div>
+                <div className="border-l border-white/10 h-8 self-center" />
+                <div>
+                  <div className="text-lg font-bold text-white">Community</div>
+                  <div className="text-xs text-white/40">Culé Family 🔴🔵</div>
+                </div>
+                <div className="border-l border-white/10 h-8 self-center" />
+                <div>
+                  <div className="text-lg font-bold text-white">Updates</div>
+                  <div className="text-xs text-white/40">News & Memes 📱</div>
+                </div>
+              </div>
+
+            </div>
+          </motion.div>
+        </div>
+      </section>
     </div>
   );
 }

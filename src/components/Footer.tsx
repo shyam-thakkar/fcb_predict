@@ -7,7 +7,7 @@ export default function Footer() {
                         <div className="flex items-center gap-2 mb-3">
                             <span className="text-2xl">⚽</span>
                             <span className="text-lg font-bold bg-gradient-to-r from-amber-400 to-yellow-300 bg-clip-text text-transparent">
-                                FCB PREDICTOR
+                                FCB AHMEDABD
                             </span>
                         </div>
                         <p className="text-sm text-white/40 leading-relaxed">
@@ -41,7 +41,7 @@ export default function Footer() {
                     </div>
                 </div>
                 <div className="mt-8 pt-6 border-t border-white/5 text-center text-xs text-white/30">
-                    <p>© 2026 FCB Predictor. Made with ❤️ for football fans.</p>
+                    <p>© 2026 FCB AHMEDABD. Made with ❤️ for football fans.</p>
                 </div>
             </div>
         </footer>

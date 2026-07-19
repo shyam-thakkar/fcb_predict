@@ -31,7 +31,7 @@ export default function Navbar() {
                         <img src="/logo.png" alt="FCB Ahmedabad Logo" className="w-10 h-10 object-contain filter drop-shadow-[0_0_6px_rgba(245,158,11,0.15)]" />
                         <div className="flex flex-col">
                             <span className="text-sm font-bold bg-gradient-to-r from-amber-400 to-yellow-300 bg-clip-text text-transparent leading-tight">
-                                FCB PREDICTOR
+                                FCB AHMEDABD
                             </span>
                             <span className="text-[10px] text-white/40 leading-tight">FIFA WC 2026 Final</span>
                         </div>
