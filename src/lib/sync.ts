@@ -20,21 +20,49 @@ export async function syncMatchStats(matchId: string, fotmobMatchId: string): Pr
 
         const data = await response.json();
 
-        // 1. Extract basic status
+        // 1. Extract basic status and robustly parse match minute
         const isStarted = data.header?.status?.started || false;
         const isFinished = data.header?.status?.finished || false;
-        const matchMinute = data.header?.status?.liveTime?.minute || 0;
+
+        let matchMinute = 0;
+        const liveTimeObj = data.header?.status?.liveTime;
+        if (liveTimeObj) {
+            if (typeof liveTimeObj.minute === 'number') {
+                matchMinute = liveTimeObj.minute;
+            } else if (liveTimeObj.short) {
+                if (liveTimeObj.short === 'HT') {
+                    matchMinute = liveTimeObj.basePeriod || liveTimeObj.maxTime || 45;
+                } else {
+                    const parsed = parseInt(liveTimeObj.short);
+                    if (!isNaN(parsed)) {
+                        matchMinute = parsed;
+                    } else {
+                        matchMinute = liveTimeObj.maxTime || liveTimeObj.basePeriod || 0;
+                    }
+                }
+            } else {
+                matchMinute = liveTimeObj.maxTime || liveTimeObj.basePeriod || 0;
+            }
+        }
 
         let matchStatus: 'upcoming' | 'live' | 'halftime' | 'extra_time' | 'penalties' | 'finished' = 'upcoming';
         if (isFinished) {
             matchStatus = 'finished';
         } else if (isStarted) {
-            const liveTimeStr = data.header?.status?.liveTime?.longKey || '';
-            if (liveTimeStr.toLowerCase().includes('half')) {
+            const liveTimeLongKey = (data.header?.status?.liveTime?.longKey || '').toLowerCase();
+            const liveTimeShortKey = (data.header?.status?.liveTime?.shortKey || '').toLowerCase();
+            const liveTimeShort = (data.header?.status?.liveTime?.short || '').toLowerCase();
+            const liveTimeLong = (data.header?.status?.liveTime?.long || '').toLowerCase();
+
+            const isHalftime = [liveTimeLongKey, liveTimeShortKey, liveTimeShort, liveTimeLong].some(s => s.includes('half') || s.includes('pause'));
+            const isExtraTime = [liveTimeLongKey, liveTimeShortKey, liveTimeShort, liveTimeLong].some(s => s.includes('extra'));
+            const isPenalties = [liveTimeLongKey, liveTimeShortKey, liveTimeShort, liveTimeLong].some(s => s.includes('penal'));
+
+            if (isHalftime) {
                 matchStatus = 'halftime';
-            } else if (liveTimeStr.toLowerCase().includes('extra')) {
+            } else if (isExtraTime) {
                 matchStatus = 'extra_time';
-            } else if (liveTimeStr.toLowerCase().includes('penalties')) {
+            } else if (isPenalties) {
                 matchStatus = 'penalties';
             } else {
                 matchStatus = 'live';
@@ -95,7 +123,8 @@ export async function syncMatchStats(matchId: string, fotmobMatchId: string): Pr
         let shotsHome = 0;
         let shotsAway = 0;
 
-        const statsPeriods = data.content?.stats?.periods?.All?.stats || [];
+        // Try both uppercase Periods and lowercase periods
+        const statsPeriods = data.content?.stats?.Periods?.All?.stats || data.content?.stats?.periods?.All?.stats || [];
         for (const statsGroup of statsPeriods) {
             const statsItems = statsGroup.stats || [];
             for (const stat of statsItems) {
@@ -105,13 +134,13 @@ export async function syncMatchStats(matchId: string, fotmobMatchId: string): Pr
                 const homeVal = values[fotmobArgentinaIndex];
                 const awayVal = values[fotmobSpainIndex];
 
-                if (title.includes('possession')) {
+                if (title === 'ball possession' || title.includes('possession')) {
                     possessionHome = parseInt(homeVal) || 50;
                     possessionAway = parseInt(awayVal) || 50;
-                } else if (title.includes('corner')) {
+                } else if (title === 'corners') {
                     cornersHome = parseInt(homeVal) || 0;
                     cornersAway = parseInt(awayVal) || 0;
-                } else if (title.includes('shot')) {
+                } else if (title === 'total shots') {
                     shotsHome = parseInt(homeVal) || 0;
                     shotsAway = parseInt(awayVal) || 0;
                 }
