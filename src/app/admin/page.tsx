@@ -89,17 +89,15 @@ export default function AdminPage() {
     }, [user, authLoading, router]);
 
     useEffect(() => {
-        if (!autoSync || !match || !fotmobMatchId) return;
+        if (!autoSync) return;
 
-        // Trigger once immediately when turned on
-        syncFromFotmob(true);
-
+        // Poll match data from local DB every 10s to reflect background sync updates in UI
         const interval = setInterval(() => {
-            syncFromFotmob(true);
+            loadData(true);
         }, 10000);
 
         return () => clearInterval(interval);
-    }, [autoSync, fotmobMatchId, match]);
+    }, [autoSync]);
 
     const loadData = async (silent: boolean = false) => {
         if (!silent) setLoadingData(true);
@@ -116,6 +114,8 @@ export default function AdminPage() {
             if (matchData.success && matchData.data?.[0]) {
                 setMatch(matchData.data[0]);
                 const m = matchData.data[0];
+                setFotmobMatchId(m.fotmob_match_id || '4653858');
+                setAutoSync(m.auto_sync || false);
                 setMatchForm({
                     status: m.status || 'upcoming',
                     score_home: m.score_home || 0,
@@ -143,6 +143,31 @@ export default function AdminPage() {
         }
     };
 
+    const handleToggleAutoSync = async (checked: boolean) => {
+        setAutoSync(checked);
+        if (!match) return;
+        try {
+            const res = await fetch('/api/match', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: (match as Record<string, unknown>).id,
+                    auto_sync: checked,
+                    fotmob_match_id: fotmobMatchId
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success(checked ? 'Background auto-sync enabled!' : 'Background auto-sync disabled.');
+            } else {
+                toast.error(data.error || 'Failed to update auto-sync status');
+            }
+        } catch (error) {
+            console.error('Failed to communicate with server:', error);
+            toast.error('Failed to communicate with server');
+        }
+    };
+
     const updateMatch = async () => {
         if (!match) return;
         setSaving(true);
@@ -150,7 +175,12 @@ export default function AdminPage() {
             const res = await fetch('/api/match', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: (match as Record<string, unknown>).id, ...matchForm }),
+                body: JSON.stringify({
+                    id: (match as Record<string, unknown>).id,
+                    ...matchForm,
+                    auto_sync: autoSync,
+                    fotmob_match_id: fotmobMatchId
+                }),
             });
             const data = await res.json();
             if (data.success) {
@@ -435,7 +465,7 @@ export default function AdminPage() {
                                     <input
                                         type="checkbox"
                                         checked={autoSync}
-                                        onChange={(e) => setAutoSync(e.target.checked)}
+                                        onChange={(e) => handleToggleAutoSync(e.target.checked)}
                                         className="w-4 h-4 accent-emerald-500 cursor-pointer"
                                     />
                                     <span className="text-sm font-medium text-white/80 flex items-center gap-2">
@@ -726,8 +756,8 @@ export default function AdminPage() {
                                         key={f}
                                         onClick={() => setCardFilter(f)}
                                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize cursor-pointer ${cardFilter === f
-                                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/20'
-                                                : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'
+                                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/20'
+                                            : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'
                                             }`}
                                     >
                                         {f}
@@ -798,8 +828,8 @@ export default function AdminPage() {
                                                             onClick={() => toggleCardCollected(c.id, c.is_collected)}
                                                             disabled={togglingCard === c.id}
                                                             className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer disabled:opacity-50 ${c.is_collected
-                                                                    ? 'text-orange-400 hover:bg-orange-500/10 border border-orange-500/20'
-                                                                    : 'text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20'
+                                                                ? 'text-orange-400 hover:bg-orange-500/10 border border-orange-500/20'
+                                                                : 'text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20'
                                                                 }`}
                                                         >
                                                             {togglingCard === c.id ? '...' : c.is_collected ? 'Undo' : '✓ Mark Collected'}

@@ -69,6 +69,8 @@ export interface Match {
     match_minute: number;
     shots_home: number;
     shots_away: number;
+    auto_sync?: boolean;
+    fotmob_match_id?: string;
 }
 
 // ============ Leaderboard Types ============

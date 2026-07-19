@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS matches (
   match_minute INTEGER DEFAULT 0,
   shots_home INTEGER DEFAULT 0,
   shots_away INTEGER DEFAULT 0,
+  auto_sync BOOLEAN DEFAULT false,
+  fotmob_match_id VARCHAR(50) DEFAULT '4653858',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

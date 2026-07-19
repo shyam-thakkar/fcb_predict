@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { startLiveBackgroundSync } from '@/lib/sync';
+
+// Initialize background match sync on startup
+startLiveBackgroundSync();
 
 // GET match data
 export async function GET() {
